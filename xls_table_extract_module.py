@@ -4,7 +4,7 @@
  xls table extract module
  Author: Tan Kok Hua (Guohua tan)
  Email: spider123@gmail.com
- Revised date: Aug 2014
+ Revised date: Mar 2015
  
 ##############################################
 
@@ -13,13 +13,16 @@ Usage:
     Underconstruction
 
 Updates:
+    Mar 29 2015: Add in Database frame.
     Aug 11 2014: Finish on the header tag.
     Aug 10 2014: Modified from xls_setting_extract_module.
 
 TODO:
     make the columna and row position as variable 
     give error if cannot find the tag
-    To review whether want to put table number in tag --> as although table got two, user can have preference to select 
+    To review whether want to put table number in tag --> as although table got two, user can have preference to select
+    Multiple header handling.
+
 
 
 '''
@@ -31,6 +34,13 @@ try:
 except:
     ## 'Use alternative import if pyExcel is not present'
     from pyET_tools.pyExcel import UseExcel
+
+try:
+    import pandas
+except ImportError:
+    print "Pandas is needed for some methods."
+    pass
+    
 
 class XlsExtractor(object):
     def __init__(self, fname = '', sheetname= '', param_start_key = '', param_end_key = '', header_key = '', col_len = 3):
@@ -122,6 +132,17 @@ class XlsExtractor(object):
         self.data_label_list, self.data_value_list  = self.segregate_to_label_values_block(self.full_filtered_data )
 
         self.create_label_value_dict()
+
+    def convert_table_to_df(self):
+        """ Convert the whole table to Pandas Dataframe with appropriate headers.
+
+        """
+        ## check if the header len and the filter column lenght are the same
+        if not len(ss.full_filtered_data[0]) == len(ss.header_list):
+            print 'Length of header not same as len of data.'
+            print 'Dataframe object will not be formed'
+            return
+        self.full_data_df = pandas.DataFrame(data = self.full_filtered_data, columns = self.header_list)
 
     def calculate_start_end_pos_for_data(self):
         """ Locate all the table position. Get start row, column and end row.
@@ -299,6 +320,9 @@ if __name__ == '__main__':
 
         print xls_set_class.header_list
         ## >>> [u'header1', u'header2', u'header3']
+
+        xls_set_class.convert_table_to_df()
+        print xls_set_class.full_data_df
 
 
 
